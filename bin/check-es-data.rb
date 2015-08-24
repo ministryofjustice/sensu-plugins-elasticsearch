@@ -46,9 +46,9 @@ begin
   uri = URI(options[:elasticsearch_location])
   req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
   req.body = JSON.generate json
-  response = Net::HTTP.start(uri.hostname, uri.port) do |http|
-    http.request(req)
-  end
+  http = Net::HTTP.new(uri.hostname, uri.port)
+  http.use_ssl = (uri.scheme == "https")
+  response = http.request(req)
 rescue Errno::ETIMEDOUT, Net::HTTPGatewayTimeOut
   puts 'UNKNOWN: Timeout waiting for JSON response'
   exit 3
@@ -57,7 +57,12 @@ rescue JSON::ParserError
   exit 3
 end
 
-json = JSON.parse response.body
+begin
+  json = JSON.parse response.body
+rescue JSON::ParserError
+  puts "UNKNOWN: Parse error in response: #{response.body}"
+  exit 3
+end
 # Default to aggregations; use hits if the query does not return an aggregation
 # If aggregration is in place then just the first value (as specified in the query) is returned
 if json.key? 'aggregations'
@@ -78,6 +83,7 @@ unless value.is_a?(Float) || value.is_a?(Integer)
   exit 3
 end
 
+value = value.round(2) if value.is_a?(Float)
 if value >= options[:critical]
   puts "CRITICAL: #{value}"
   exit 2
