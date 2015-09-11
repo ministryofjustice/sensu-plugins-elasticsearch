@@ -11,10 +11,10 @@ OptionParser.new do |opts|
     options[:json_file] = f
   end
   opts.on('-w', '--warning THRESHOLD', 'Warning threshold') do |w|
-    options[:warning] = w.to_i
+    options[:warning] = w.to_f
   end
   opts.on('-c', '--critical THRESHOLD', 'Critical threshold') do |c|
-    options[:critical] = c.to_i
+    options[:critical] = c.to_f
   end
   opts.on('-l', '--elasticsearch-location LOCATION',
           'ElasticSearch URL, Example: https://elasticsearch.example.com/es/_all/_search') do |l|
@@ -85,10 +85,10 @@ end
 
 value = value.round(2) if value.is_a?(Float)
 if value >= options[:critical]
-  puts "CRITICAL: #{value}"
+  puts "CRITICAL: #{value} exceeds threshold of #{options[:critical]}"
   exit 2
 elsif value >= options[:warning]
-  puts "WARN: #{value}"
+  puts "WARN: #{value} exceeds threshold of #{options[:warning]}"
   exit 1
 else
   puts "OK: #{value}"
