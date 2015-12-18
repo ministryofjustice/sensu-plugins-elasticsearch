@@ -5,6 +5,10 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 
 ## [Unreleased][unreleased]
 
+## [0.2.0] - 2015-12-18
+### Added
+- added support for avg aggregations
+
 ## [0.1.2] - 2015-08-11
 ### Added
 - add parameters for elasticsearch auth
@@ -37,7 +41,8 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 ### Added
 - initial release
 
-[unreleased]: https://github.com/sensu-plugins/sensu-plugins-elasticsearch/compare/0.1.2...HEAD
+[unreleased]: https://github.com/sensu-plugins/sensu-plugins-elasticsearch/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/sensu-plugins/sensu-plugins-elasticsearch/compare/0.1.4...0.2.0
 [0.1.2]: https://github.com/sensu-plugins/sensu-plugins-elasticsearch/compare/0.1.1...0.1.2
 [0.1.1]: https://github.com/sensu-plugins/sensu-plugins-elasticsearch/compare/0.1.0...0.1.1
 [0.1.0]: https://github.com/sensu-plugins/sensu-plugins-elasticsearch/compare/0.0.2...0.1.0
