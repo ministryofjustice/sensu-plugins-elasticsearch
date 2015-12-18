@@ -4,6 +4,15 @@ require 'uri'
 require 'optparse'
 require 'net/http'
 
+
+# A percentiles aggregation may have several percentiles, each with its own value
+# whereas an avg aggregation will not, and the structure of the json will be 
+# subtly different. This function will transparently handle either case
+def first_aggregation_value(aggregations={})
+  first_val = aggregations.values[0]
+  first_val.key?('values') ? first_val['values'].values[0] : first_val.values[0]
+end
+
 options = {}
 OptionParser.new do |opts|
   opts.on('-f', '--json-file QUERY_FILE',
@@ -66,7 +75,7 @@ end
 # Default to aggregations; use hits if the query does not return an aggregation
 # If aggregration is in place then just the first value (as specified in the query) is returned
 if json.key? 'aggregations'
-  value = json['aggregations'].values[0]['values'].values[0]
+  value = first_aggregation_value(json['aggregations'])
 elsif json.key? 'hits'
   value = json['hits']['total']
 else
