@@ -22,6 +22,9 @@ OptionParser.new do |opts|
   opts.on('-w', '--warning THRESHOLD', 'Warning threshold') do |w|
     options[:warning] = w.to_f
   end
+  opts.on('-n', '--nil', 'When Nil or Null is returned convert it to 0') do |_|
+    options[:nil] = true
+  end
   opts.on('-c', '--critical THRESHOLD', 'Critical threshold') do |c|
     options[:critical] = c.to_f
   end
@@ -85,6 +88,10 @@ else
   end
   puts "UNKNOWN: Unable to process the elasticsearch response, is the query correct? (response is #{json})"
   exit 3
+end
+
+if value.is_a?(NilClass) && options[:nil]
+  value = 0
 end
 
 unless value.is_a?(Float) || value.is_a?(Integer)
