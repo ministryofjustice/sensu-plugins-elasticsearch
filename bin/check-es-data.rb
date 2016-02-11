@@ -32,6 +32,9 @@ OptionParser.new do |opts|
           'ElasticSearch URL, Example: https://elasticsearch.example.com/es/_all/_search') do |l|
     options[:elasticsearch_location] = l
   end
+  opts.on('--ignore-nan DEFAULT_VALUE', 'When NaN is returned convert it to the number specified') do |f|
+    options[:ignore_nan] = f.to_f
+  end
 end.parse!
 
 # It would be nice if OptionParser had a way to mandate options
@@ -93,7 +96,9 @@ end
 if value.is_a?(NilClass) && options[:nil]
   value = 0
 end
-
+if not value.is_a? Numeric and options[:ignore_nan]
+  value = options[:ignore_nan]
+end
 unless value.is_a?(Float) || value.is_a?(Integer)
   puts "UNKNOWN: query returned a value of #{value} (type: #{value.class}) - was expecting an Integer or Float"
   exit 3
