@@ -79,6 +79,11 @@ end
 # If aggregration is in place then just the first value (as specified in the query) is returned
 if json.key? 'aggregations'
   value = first_aggregation_value(json['aggregations'])
+    # If we get a value of NaN for aggregations because we have no results to
+    # aggregate, we return zero instead
+   if value == 'NaN' && json['hits']['total'] == 0
+     value = 0
+   end
 elsif json.key? 'hits'
   value = json['hits']['total']
 else
