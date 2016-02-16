@@ -5,6 +5,10 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 
 ## [Unreleased][unreleased]
 
+## [0.2.2] - 2016-02-16
+### Fixes
+* Handle NaN aggregation results when we have no results
+
 ## [0.2.1] - 2015-01-10
 ### Added
 - added support for nil es results
