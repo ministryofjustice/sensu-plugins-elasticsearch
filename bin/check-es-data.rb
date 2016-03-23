@@ -28,6 +28,9 @@ OptionParser.new do |opts|
   opts.on('-c', '--critical THRESHOLD', 'Critical threshold') do |c|
     options[:critical] = c.to_f
   end
+  opts.on('-i', '--invert', 'use less than <= as default operator rather than >= greater than') do |_|
+    options[:invert] = true
+  end
   opts.on('-l', '--elasticsearch-location LOCATION',
           'ElasticSearch URL, Example: https://elasticsearch.example.com/es/_all/_search') do |l|
     options[:elasticsearch_location] = l
@@ -105,13 +108,27 @@ unless value.is_a?(Float) || value.is_a?(Integer)
 end
 
 value = value.round(2) if value.is_a?(Float)
-if value >= options[:critical]
-  puts "CRITICAL: #{value} exceeds threshold of #{options[:critical]}"
-  exit 2
-elsif value >= options[:warning]
-  puts "WARN: #{value} exceeds threshold of #{options[:warning]}"
-  exit 1
+
+if options[:invert]
+  if value <= options[:critical]
+    puts "CRITICAL: #{value} exceeds threshold of #{options[:critical]}"
+    exit 2
+  elsif value <= options[:warning]
+    puts "WARN: #{value} exceeds threshold of #{options[:warning]}"
+    exit 1
+  else
+    puts "OK: #{value}"
+    exit 0
+  end
 else
-  puts "OK: #{value}"
-  exit 0
+  if value >= options[:critical]
+    puts "CRITICAL: #{value} exceeds threshold of #{options[:critical]}"
+    exit 2
+  elsif value >= options[:warning]
+    puts "WARN: #{value} exceeds threshold of #{options[:warning]}"
+    exit 1
+  else
+    puts "OK: #{value}"
+    exit 0
+  end
 end
