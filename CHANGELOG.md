@@ -5,6 +5,11 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 
 ## [Unreleased][unreleased]
 
+## [0.2.3] - 2016-03-29
+### Added
+- added invert option in check-es-data to use less-than 
+  operator instead of greater-than
+
 ## [0.2.2] - 2016-02-16
 ### Fixes
 * Handle NaN aggregation results when we have no results
