@@ -1,9 +1,10 @@
 #! /usr/bin/env ruby
 #
-#  check-es-cluster-status
+#  check-es-circuit-breakers
 #
 # DESCRIPTION:
-#   This plugin checks the ElasticSearch cluster status, using its API.
+#   This plugin checks whether the ElasticSearch circuit breakers have been tripped,
+#   using the node stats API.
 #   Works with ES 0.9x and ES 1.x
 #
 # OUTPUT:
@@ -17,7 +18,7 @@
 #   gem: rest-client
 #
 # USAGE:
-#   #YELLOW
+#   check-es-circuit-breakers --help
 #
 # NOTES:
 #
@@ -32,10 +33,7 @@ require 'rest-client'
 require 'json'
 require 'base64'
 
-#
-# ES Cluster Status
-#
-class ESClusterStatus < Sensu::Plugin::Check::CLI
+class ESCircuitBreaker < Sensu::Plugin::Check::CLI
   option :host,
          description: 'Elasticsearch host',
          short: '-h HOST',
@@ -49,24 +47,12 @@ class ESClusterStatus < Sensu::Plugin::Check::CLI
          proc: proc(&:to_i),
          default: 9200
 
-  option :master_only,
-         description: 'Use master Elasticsearch server only',
-         short: '-m',
-         long: '--master-only',
-         default: false
-
   option :timeout,
          description: 'Sets the connection timeout for REST client',
          short: '-t SECS',
          long: '--timeout SECS',
          proc: proc(&:to_i),
          default: 30
-
-  option :status_timeout,
-         description: 'Sets the time to wait for the cluster status to be green',
-         short: '-T SECS',
-         long: '--status_timeout SECS',
-         proc: proc(&:to_i)
 
   option :user,
          description: 'Elasticsearch User',
@@ -94,43 +80,34 @@ class ESClusterStatus < Sensu::Plugin::Check::CLI
     critical 'Connection reset by peer'
   end
 
-  def acquire_es_version
-    info = get_es_resource('/')
-    info['version']['number']
-  end
-
-  def master?
-    if Gem::Version.new(acquire_es_version) >= Gem::Version.new('1.0.0')
-      master = get_es_resource('/_cluster/state/master_node')['master_node']
-      local = get_es_resource('/_nodes/_local')
-    else
-      master = get_es_resource('/_cluster/state?filter_routing_table=true&filter_metadata=true&filter_indices=true')['master_node']
-      local = get_es_resource('/_cluster/nodes/_local')
+  def breaker_status
+    breakers = {}
+    status = get_es_resource('/_nodes/stats/breaker')
+    status['nodes'].each_pair do |_node, stat|
+      host = stat['host']
+      breakers[host] = {}
+      breakers[host]['breakers'] = []
+      stat.each_pair do |key, val|
+        if key == 'breakers'
+          val.each_pair do |bk, bv|
+            if bv['tripped'] != 0
+              breakers[host]['breakers'] << bk
+            end
+          end
+        end
+      end
     end
-    local['nodes'].keys.first == master
-  end
-
-  def acquire_status
-    health = if config[:status_timeout]
-               get_es_resource("/_cluster/health?wait_for_status=green&timeout=#{config[:status_timeout]}s")
-             else
-               get_es_resource('/_cluster/health')
-             end
-    health['status'].downcase
+    breakers
   end
 
   def run
-    if !config[:master_only] || master?
-      case acquire_status
-      when 'green'
-        ok 'Cluster is green'
-      when 'yellow'
-        warning 'Cluster is yellow'
-      when 'red'
-        critical 'Cluster is red'
-      end
+    breakers = breaker_status
+    tripped = false
+    breakers.each_pair { |_k, v| tripped = true unless v['breakers'].empty? }
+    if tripped
+      critical "Circuit Breakers: #{breakers.each_pair { |k, _v| k }} trippped!"
     else
-      ok 'Not the master'
+      ok 'All circuit breakers okay'
     end
   end
 end
