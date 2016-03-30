@@ -5,6 +5,10 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 
 ## [Unreleased][unreleased]
 
+## [0.2.1] - 2015-01-10
+### Added
+- added support for nil es results
+
 ## [0.2.0] - 2015-12-18
 ### Added
 - added support for avg aggregations
