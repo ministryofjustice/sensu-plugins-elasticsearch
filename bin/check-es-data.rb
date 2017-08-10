@@ -35,6 +35,10 @@ OptionParser.new do |opts|
           'ElasticSearch URL, Example: https://elasticsearch.example.com/es/_all/_search') do |l|
     options[:elasticsearch_location] = l
   end
+  opts.on('-k', '--kibana-version VERSION',
+          'The version of the kibana API we are querying') do |k|
+    options[:kibana_version] = k
+  end
 end.parse!
 
 # It would be nice if OptionParser had a way to mandate options
@@ -60,6 +64,10 @@ end
 begin
   uri = URI(options[:elasticsearch_location])
   req = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
+  if options[:kibana_version]
+    kibana_version = options[:kibana_version]
+    req.add_field("kbn-version", kibana_version)
+  end
   req.body = JSON.generate json
   http = Net::HTTP.new(uri.hostname, uri.port)
   http.use_ssl = (uri.scheme == "https")
